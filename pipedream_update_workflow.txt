@@ -1,0 +1,66 @@
+import { Resend } from "resend";
+
+export default defineComponent({
+  async run({ steps, $ }) {
+    const body = steps.trigger.event.body;
+    const newRecord = body.record;
+    const oldRecord = body.old_record;
+
+    if (!newRecord || !oldRecord) {
+      console.error("Faltan datos para procesar la actualización.");
+      return;
+    }
+
+    // Solo continuamos si el estado ha cambiado
+    if (newRecord.status === oldRecord.status) {
+      console.log("El estado no ha cambiado, no se envía correo.");
+      return;
+    }
+
+    const RESEND_API_KEY = "TU_API_KEY_DE_RESEND"; // Reemplaza con tu clave
+    const resend = new Resend(RESEND_API_KEY);
+
+    let subject = '';
+    let emailBody = '';
+    let shouldSend = false;
+
+    if (newRecord.status === 'En Progreso') {
+      subject = `[Ticket #${newRecord.id}] Tu ticket ha sido aceptado`;
+      emailBody = `
+        <h1>Tu Ticket está En Progreso</h1>
+        <p>Hola ${newRecord.requester_name},</p>
+        <p>Buenas noticias: hemos aceptado tu ticket de soporte (ID <strong>#${newRecord.id}</strong>) y ya estamos trabajando en él.</p>
+        <p>Te notificaremos de nuevo cuando se haya resuelto.</p>
+      `;
+      shouldSend = true;
+    } else if (newRecord.status === 'Cerrado') {
+      subject = `[Ticket #${newRecord.id}] Tu ticket ha sido solucionado`;
+      emailBody = `
+        <h1>Tu Ticket ha sido Cerrado</h1>
+        <p>Hola ${newRecord.requester_name},</p>
+        <p>Tu ticket de soporte (ID <strong>#${newRecord.id}</strong>) ha sido marcado como solucionado y cerrado.</p>
+        <p>Si crees que el problema no se ha resuelto, por favor, no dudes en crear un nuevo ticket.</p>
+      `;
+      shouldSend = true;
+    }
+
+    if (!shouldSend) {
+      console.log("No se cumplieron las condiciones para enviar un correo.");
+      return;
+    }
+
+    try {
+      await resend.emails.send({
+        from: 'Albatros Ticketing <onboarding@resend.dev>',
+        // --- WORKAROUND PARA RESEND ---
+        to: 'iranmercado6@gmail.com', 
+        subject: subject,
+        html: emailBody,
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("Fallo al enviar correo:", error);
+      throw error;
+    }
+  },
+});

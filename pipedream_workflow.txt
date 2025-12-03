@@ -1,0 +1,41 @@
+import { Resend } from "resend";
+
+export default defineComponent({
+  async run({ steps, $ }) {
+    const newRecord = steps.trigger.event.body.record;
+
+    if (!newRecord) {
+      console.error("No se encontraron datos del ticket.");
+      return;
+    }
+
+    const RESEND_API_KEY = "TU_API_KEY_DE_RESEND"; // ¡¡¡RECUERDA PONER TU KEY!!!
+    const resend = new Resend(RESEND_API_KEY);
+
+    const subject = `[Ticket #${newRecord.id}] Nuevo Ticket - Prioridad: ${newRecord.priority}`;
+    const emailBody = `
+      <h1>Nuevo Ticket de Soporte</h1>
+      <p><strong>ID del Ticket:</strong> #${newRecord.id}</p>
+      <p><strong>Solicitante:</strong> ${newRecord.requester_name} (${newRecord.requester_email})</p>
+      <p><strong>Departamento:</strong> ${newRecord.departamento}</p>
+      <p><strong>Prioridad:</strong> ${newRecord.priority}</p>
+      <p><strong>Descripción del Problema:</strong></p>
+      <p>${newRecord.description}</p>
+      <br>
+      <img src="https://i.imgur.com/ILI2SUU.jpeg" alt="Imagen de soporte" width="400" height="400" style="max-width: 100%; height: auto;">
+    `;
+
+    try {
+      await resend.emails.send({
+        from: 'Albatros Ticketing <onboarding@resend.dev>',
+        to: 'iranmercado6@gmail.com',
+        subject: subject,
+        html: emailBody,
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("Fallo al enviar correo:", error);
+      throw error;
+    }
+  },
+});
