@@ -1,51 +1,70 @@
 <template>
-  <div id="app-container">
-    <div class="card">
-      <header class="form-header">
-        <div class="user-info">
-          <p>Conectado como:</p>
-          <strong>{{ nombre }}</strong>
-        </div>
+  <div class="ticket-form-view">
+    <header class="top-bar">
+      <div class="top-bar-content">
+        <img src="/loog negro.jpg" alt="Logo Albatros Ticketing" class="top-bar-logo">
+        <h1 class="welcome-title">Bienvenido a Albatros Ticketing</h1>
         <button @click="handleLogout" class="logout-btn">Cerrar Sesión</button>
-      </header>
+      </div>
+    </header>
 
-      <h2>📝 Crear Nuevo Ticket de Soporte</h2>
-      
-      <form @submit.prevent="crearTicket">
-        <input 
-          type="text" 
-          v-model="nombre" 
-          placeholder="Tu Nombre"
-          required
-          readonly
-        >
-        <input 
-          type="email" 
-          v-model="email" 
-          placeholder="Tu Email"
-          required
-          readonly
-        >
-        <textarea 
-          v-model="descripcion" 
-          rows="5" 
-          placeholder="Describe tu problema..."
-          required
-        ></textarea>
+    <div id="app-container">
+      <div class="card">
+        <h2>Crear nuevo ticket de soporte</h2>
         
-        <select v-model="prioridad" required>
-          <option disabled value="">Selecciona la Prioridad</option>
-          <option value="Baja">Baja</option>
-          <option value="Media">Media</option>
-          <option value="Urgente">Urgente</option>
-        </select>
-        
-        <button type="submit" :disabled="cargando">
-          {{ cargando ? 'Enviando Ticket...' : '🚀 Enviar Ticket' }}
-        </button>
-      </form>
+        <form @submit.prevent="crearTicket">
+          <div class="input-group">
+            <label for="nombre">Nombre</label>
+            <input 
+              id="nombre"
+              type="text" 
+              v-model="nombre" 
+              required
+              readonly
+            >
+          </div>
+          <div class="input-group">
+            <label for="email">Email</label>
+            <input 
+              id="email"
+              type="email" 
+              v-model="email" 
+              required
+              readonly
+            >
+          </div>
+          <div class="input-group">
+            <label for="descripcion">Descripción del problema</label>
+            <textarea 
+              id="descripcion"
+              v-model="descripcion" 
+              rows="4" 
+              required
+            ></textarea>
+          </div>
+          
+          <div class="input-group">
+            <label for="prioridad">Prioridad</label>
+            <div class="custom-select" @click="toggleDropdown" tabindex="0" @blur="closeDropdown">
+              <div class="select-selected" :class="{ 'select-open': isDropdownOpen }">
+                <span>{{ prioridad }}</span>
+                <span class="select-arrow" :class="{ 'arrow-up': isDropdownOpen }"></span>
+              </div>
+              <div class="select-items" v-if="isDropdownOpen">
+                <div v-for="option in priorityOptions" :key="option" @click.stop="selectPriority(option)">
+                  {{ option }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" :disabled="cargando">
+            {{ cargando ? 'Enviando...' : 'Enviar Ticket' }}
+          </button>
+        </form>
 
-      <p v-if="estado" class="estado" :class="estado.tipo">{{ estado.texto }}</p>
+        <p v-if="estado" class="estado" :class="estado.tipo">{{ estado.texto }}</p>
+      </div>
     </div>
   </div>
 </template>
@@ -69,6 +88,25 @@ const descripcion = ref('');
 const prioridad = ref('Baja');
 const cargando = ref(false);
 const estado = ref(null);
+
+// --- Lógica para el menú desplegable personalizado ---
+const isDropdownOpen = ref(false);
+const priorityOptions = ['Baja', 'Media', 'Urgente'];
+
+function toggleDropdown() {
+  isDropdownOpen.value = !isDropdownOpen.value;
+}
+
+function closeDropdown() {
+  isDropdownOpen.value = false;
+}
+
+function selectPriority(option) {
+  prioridad.value = option;
+  closeDropdown(); // Cierra el menú al seleccionar
+}
+// ----------------------------------------------------
+
 
 onMounted(async () => {
   const { data: { session } } = await supabase.auth.getSession();
@@ -155,87 +193,265 @@ async function crearTicket() {
 </script>
 
 <style scoped>
+/* Variables de Color */
+:root {
+  --background-color: #1a1a1a;
+  --card-background: #242424;
+  --primary-text-color: #e0e0e0;
+  --secondary-text-color: #b3b3b3;
+  --accent-color: #00ffff; /* Cyan */
+  --accent-color-dark: #00b3b3;
+  --border-color: #444;
+  --input-background: transparent;
+  --error-color: #ff5252;
+  --success-color: #4caf50;
+}
+
+/* --- Estilos de la Barra Superior --- */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+  z-index: 10000;
+}
+
+.top-bar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px; /* O el ancho que prefieras */
+  margin: 0 auto;
+}
+
+.top-bar-logo {
+  height: 80px; /* Ajustado para ser más grande */
+  margin-right: 20px; /* Espacio entre el logo y la info del usuario */
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espacio entre "Conectado como:" y el nombre */
+}/* ------------------------------------ */
+
 #app-container {
-  font-family: sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-}
-.card {
-  background: #333;
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-  width: 420px;
+  padding-top: 100px; /* Espacio para la barra superior fija */
+  box-sizing: border-box;
 }
-.form-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #444;
-  padding: 10px 15px;
-  border-radius: 5px;
-  margin-bottom: 1.5rem;
+
+.card {
+  background: var(--card-background);
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid var(--border-color);
 }
+
 .user-info p {
   margin: 0;
-  font-size: 0.8em;
-  color: #ccc;
+  font-size: 0.9em;
+  color: var(--secondary-text-color);
 }
+
 .user-info strong {
   margin: 0;
-  font-size: 0.9em;
-}
-.logout-btn {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 0;
-}
-input, button, textarea, select {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  box-sizing: border-box;
-  border-radius: 5px;
-  border: none;
   font-size: 1em;
+  color: var(--primary-text-color);
 }
-input, textarea, select {
-  background: #444;
-  color: white;
-}
-input[readonly] {
-  background: #555;
-  cursor: not-allowed;
-}
-button[type="submit"] {
-  background: #28a745;
-  color: white;
-  font-weight: bold;
+
+.logout-btn {
+  background: #ffffff; /* Blanco */
+  color: #121212; /* Texto oscuro */
+  border: none; /* Sin borde */
+  padding: 10px 18px; /* Ajustado para la barra superior */
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 0.95em; /* Ajustado para la barra superior */
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
-button:disabled {
-  background: #555;
-  cursor: not-allowed;
+
+.logout-btn:hover {
+  background: var(--accent-color); /* Cian en hover */
+  color: #ffffff; /* Texto blanco en hover */
+  box-shadow: 0 0 10px 2px rgba(0, 255, 255, 0.2); /* Sombra sutil en hover */
 }
+
 h2 {
   text-align: center;
   margin-top: 0;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  color: var(--primary-text-color);
+  font-weight: 700; /* Más negrita para destacar */
+  font-family: 'Montserrat', sans-serif; /* Aplicar la nueva fuente */
 }
+
+.input-group {
+  position: relative;
+  margin-bottom: 3.5rem; /* Aumentado para dar más espacio al desplegable */
+}
+
+.input-group label {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  background: var(--card-background);
+  padding: 0 5px;
+  font-size: 0.85em;
+  color: var(--secondary-text-color);
+}
+
+input, textarea {
+  width: 100%;
+  background: var(--input-background);
+  color: var(--primary-text-color);
+  padding: 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1em;
+  transition: all 0.3s ease;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--card-background) inset !important;
+    -webkit-text-fill-color: var(--primary-text-color) !important;
+}
+
+input[readonly] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px 2px rgba(0, 255, 255, 0.2);
+}
+
+/* --- Estilos del Menú Desplegable Personalizado --- */
+.custom-select {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-select:focus {
+  outline: none;
+}
+
+.select-selected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--input-background);
+  color: var(--primary-text-color);
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px; /* Asegura bordes redondeados */
+  font-size: 1em;
+  transition: all 0.3s ease;
+}
+
+.select-selected.select-open,
+.custom-select:focus .select-selected {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px 2px rgba(0, 255, 255, 0.2);
+}
+
+.select-arrow {
+  border-color: var(--secondary-text-color) transparent transparent transparent;
+  border-style: solid;
+  border-width: 6px 6px 0 6px;
+  height: 0;
+  width: 0;
+  transition: transform 0.3s ease;
+}
+
+.select-arrow.arrow-up {
+  transform: rotate(180deg);
+}
+
+.select-items {
+  position: absolute;
+  background-color: #ffffff; /* Blanco puro */
+  top: calc(100% + 8px); /* Espacio debajo del campo seleccionado */
+  left: 0;
+  right: 0;
+  z-index: 9999; /* Asegurado para que esté siempre encima */
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.select-items div {
+  color: #121212; /* Texto oscuro para las opciones */
+  padding: 12px 16px; /* Ajustar padding */
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.select-items div:hover {
+  background-color: var(--accent-color);
+  color: #000;
+}
+/* ---------------------------------------------------- */
+
+button[type="submit"] {
+  width: 100%;
+  padding: 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #ffffff; /* Blanco */
+  color: #121212; /* Texto oscuro */
+  transition: all 0.3s ease;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  background-color: var(--accent-color); /* Cian en hover */
+  color: #ffffff; /* Texto blanco en hover */
+  box-shadow: 0 0 15px 3px rgba(0, 255, 255, 0.25);
+}
+
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .estado {
   text-align: center;
-  margin-top: 10px;
+  margin-top: 15px;
   font-size: 0.9em;
-  padding: 10px;
-  border-radius: 5px;
+  padding: 12px;
+  border-radius: 8px;
 }
-.estado.exito { color: #fff; background-color: #4caf50; }
-.estado.error { color: #fff; background-color: #ff5252; }
+
+.estado.exito { color: #fff; background-color: var(--success-color); }
+.estado.error { color: #fff; background-color: var(--error-color); }
 .estado.info { color: #fff; background-color: #5a5a5a; }
 </style>
