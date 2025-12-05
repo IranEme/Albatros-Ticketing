@@ -10,6 +10,10 @@ export default {
 
 <style>
 /* Estilos Globales */
+html {
+  /* font-size: 100%; */ /* Se elimina la regla para usar el tamaño por defecto del navegador */
+}
+
 body {
   margin: 0;
   background: #121212;
