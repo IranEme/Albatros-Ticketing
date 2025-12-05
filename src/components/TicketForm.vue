@@ -58,7 +58,7 @@ import { supabase } from '../supabase';
 const router = useRouter();
 
 // --- CONFIGURACIÓN DE RED LOCAL (para SMS Urgentes) ---
-const IP_DEL_CELULAR = "IP_DEL_CELULAR_AQUI"; 
+const IP_DEL_CELULAR = "192.168.1.97"; 
 const PUERTO = "3000";
 // -----------------------------------------------------
 

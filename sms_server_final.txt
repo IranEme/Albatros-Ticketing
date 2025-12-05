@@ -1,0 +1,41 @@
+const express = require('express');
+const { exec } = require('child_process');
+const cors = require('cors');
+const app = express();
+
+app.use(express.json());
+app.use(cors());
+
+app.post('/enviar-sms', (req, res) => {
+    const { id, requester_name, priority, description, departamento } = req.body;
+
+    const numeroDestinoFijo = '+526462862491';
+
+    if (!id || !description) {
+        return res.status(400).json({ error: 'Faltan datos del ticket (id, description)' });
+    }
+
+    const cuerpoMensaje = [
+        `Ticket: #${id}`,
+        `Depto: ${departamento || 'General'}`,
+        `Solicitante: ${requester_name || 'No especificado'}`,
+        `Prioridad: ${priority || 'Normal'}`,
+        `Problema: ${description}`
+    ].join('\n');
+
+    const mensajeFormateado = `Albatros Ticketing:\n\n${cuerpoMensaje}`;
+
+    console.log(`Intentando enviar a ${numeroDestinoFijo}:\n${mensajeFormateado}`);
+
+    exec(`termux-sms-send -n ${numeroDestinoFijo} "${mensajeFormateado}"`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error: ${error.message}`);
+            return res.status(500).json({ error: 'Fallo al enviar' });
+        }
+        console.log('¡SMS Enviado!');
+        res.json({ status: 'Exito', info: 'Mensaje enviado' });
+    });
+});
+
+app.listen(3000, () => console.log('🤖 Servidor Android listo en puerto 3000'));
+
