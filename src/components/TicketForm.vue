@@ -77,7 +77,7 @@ import { supabase } from '../supabase';
 const router = useRouter();
 
 // --- CONFIGURACIÓN DE RED LOCAL (para SMS Urgentes) ---
-const IP_DEL_CELULAR = "140.10.1.133"; 
+const IP_DEL_CELULAR = "140.10.4.98"; 
 const PUERTO = "3000";
 // -----------------------------------------------------
 
@@ -134,7 +134,7 @@ async function enviarNotificacionSms(ticketDescripcion) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        numero: "+526462862491", // ¡IMPORTANTE! Reemplaza con el número que recibirá las alertas
+        numero: "+526462862491", 
         mensaje: mensajeSms,
       }),
     });
